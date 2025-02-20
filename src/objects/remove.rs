@@ -4,7 +4,7 @@ use super::types::HubSpotObjectType;
 
 
 impl HubSpotClient {
-    pub async fn remove_obj(&self, object_type: HubSpotObjectType, object_id: &str) -> Result<(), String> {
+    pub async fn remove(&self, object_type: HubSpotObjectType, object_id: &str) -> Result<(), String> {
         let url = format!("https://api.hubspot.com/crm/v3/objects/{}/{}", object_type.to_string(), object_id);
         let client = reqwest::Client::new();
         let res = match client

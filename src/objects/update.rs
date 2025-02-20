@@ -3,7 +3,7 @@ use crate::HubSpotClient;
 use super::types::HubSpotObjectType;
 
 impl HubSpotClient {
-    pub async fn update_obj(&self, object_type: HubSpotObjectType, object_id: &str, body: &Value) -> Result<(), String> {
+    pub async fn update(&self, object_type: HubSpotObjectType, object_id: &str, body: &Value) -> Result<(), String> {
         let url = format!("https://api.hubspot.com/crm/v3/objects/{}/{}", object_type.to_string(), object_id);
         let client = reqwest::Client::new();
         let res = match client

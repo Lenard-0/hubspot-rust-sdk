@@ -9,7 +9,7 @@ use super::types::HubSpotObjectType;
 impl HubSpotClient {
 
     /// Creates a record and returns it's ID
-    pub async fn create_obj(&self, record_type: HubSpotObjectType, properties: HashMap<String, Value>) -> Result<String, String> {
+    pub async fn create(&self, record_type: HubSpotObjectType, properties: HashMap<String, Value>) -> Result<String, String> {
         let client = reqwest::Client::new();
         let api_url = format!("https://api.hubspot.com/crm/v3/objects/{}", record_type.to_string());
 
