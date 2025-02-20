@@ -1,5 +1,4 @@
 
-use std::collections::HashSet;
 
 use reqwest;
 use serde_json::Value;

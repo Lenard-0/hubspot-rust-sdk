@@ -21,7 +21,7 @@ impl HubSpotClient {
 
         let mut request_url = format!("/associations/default/{}/{}", to_object_type.to_string_singular(), to_object_id);
 
-        if let Some(association_type) = association_type {
+        if let Some(_) = association_type {
             // If an association type is provided, use the labeled association endpoint
             request_url = format!("/associations/{}/{}", to_object_type.to_string_singular(), to_object_id);
         }
