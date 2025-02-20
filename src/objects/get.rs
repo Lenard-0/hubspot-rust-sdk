@@ -38,7 +38,6 @@ impl HubSpotClient {
             true => {
                 let body = res.text().await.unwrap();
                 let body_json: Value = serde_json::from_str(&body).unwrap();
-                println!("Got object: {:#?}", body_json);
                 Ok(body_json)
             },
             false => {
@@ -55,14 +54,14 @@ impl HubSpotClient {
         object_type: HubSpotObjectType,
         properties: Vec<&str>,
         associations: Vec<&str>,
-        limit: Option<u32>,
+        max_amount: Option<usize>,
     ) -> Result<Vec<Value>, String> {
         let mut all_objects = Vec::new();
         let client = reqwest::Client::new();
         let mut current_url = format!("https://api.hubspot.com/crm/v3/objects/{}", object_type.to_string());
+        let query_params = query_params_to_string(properties, associations);
+        current_url = format!("{}{}", current_url, query_params);
         loop {
-            let mut properties = properties.clone();
-            properties.push("id");
             let res = match client
                 .get(current_url)
                 .header("Authorization", format!("Bearer {}", self.api_key))
@@ -81,8 +80,8 @@ impl HubSpotClient {
                     None => return Err(format!("Failed to parse results of body getting all: {:#?}", body)),
                 };
 
-                match limit {
-                    Some(limit) if all_objects.len() as u32 >= limit => break,
+                match max_amount {
+                    Some(limit) if all_objects.len() >= limit => break,
                     _ => (),
                 };
 
@@ -137,7 +136,7 @@ fn push_params(query_params: &mut String, params: Vec<&str>, params_name: &str) 
     //         "link": String("https://api.hubspot.com/crm/v3/objects/companies/?limit=100&after=8958534985"),
     //     },
     // }
-fn next_url(body: &Value) -> Option<String> {
+pub fn next_url(body: &Value) -> Option<String> {
     match body["paging"]["next"]["link"].as_str() {
         Some(link) => Some(link.to_string()),
         None => None,

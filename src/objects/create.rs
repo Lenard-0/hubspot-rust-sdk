@@ -31,7 +31,6 @@ impl HubSpotClient {
 
         // Check if the request was successful
         if res.status().is_success() {
-            println!("Object created successfully");
             let body = res.text().await.unwrap();
             let body_json: Value = serde_json::from_str(&body).unwrap();
             let object_id = body_json["id"].as_str().unwrap();

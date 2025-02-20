@@ -30,7 +30,6 @@ mod tests {
             vec![]
         ).await.unwrap();
 
-        println!("Got contact: {:#?}", contact);
 
         assert_eq!(contact["properties"]["email"].as_str().unwrap(), email);
         assert_eq!(contact["properties"]["firstname"].as_str().unwrap(), firstname);
@@ -61,7 +60,6 @@ mod tests {
             Some(500)
         ).await.unwrap();
 
-        println!("Got companies");
         assert_eq!(companies.len(), 500);
     }
 }
