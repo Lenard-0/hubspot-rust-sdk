@@ -1,4 +1,22 @@
 use std::fmt::Display;
+use serde::Deserialize;
+use serde_json::Value;
+
+#[derive(Debug, Deserialize)]
+pub struct HubSpotObject {
+    pub id: String,
+    pub properties: Value,
+    pub associations: Option<Vec<Value>>
+}
+
+impl HubSpotObject {
+    pub fn from_value(value: Value) -> Result<HubSpotObject, String> {
+        match serde_json::from_value(value) {
+            Ok(obj) => Ok(obj),
+            Err(e) => Err(format!("Failed to parse object: {}", e))
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum HubSpotObjectType {

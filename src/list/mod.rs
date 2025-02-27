@@ -1,5 +1,4 @@
 use serde::Deserialize;
-use serde_json::Value;
 use crate::{objects::types::HubSpotObjectType, universals::{client::HubSpotClient, requests::HttpMethod, utils::to_array}};
 
 #[derive(Deserialize)]

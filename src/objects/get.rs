@@ -1,6 +1,6 @@
 use serde_json::Value;
 use crate::universals::{client::HubSpotClient, pagination::TurnPageMethod, requests::HttpMethod};
-use super::types::HubSpotObjectType;
+use super::types::{HubSpotObject, HubSpotObjectType};
 
 impl HubSpotClient {
     /// Creates a record and returns it's ID
@@ -11,15 +11,15 @@ impl HubSpotClient {
         object_id: &str,
         properties: Vec<&str>,
         associations: Vec<&str>,
-    ) -> Result<Value, String> {
-        self.request(
+    ) -> Result<HubSpotObject, String> {
+        HubSpotObject::from_value( self.request(
             &format!(
                 "/crm/v3/objects/{object_type}/{object_id}{}",
                 query_params_to_string(properties, associations)
             ),
             &HttpMethod::Get,
             None
-        ).await
+        ).await? )
     }
 
     pub async fn get_many(
@@ -28,7 +28,7 @@ impl HubSpotClient {
         properties: Vec<&str>,
         associations: Vec<&str>,
         max_amount: Option<usize>,
-    ) -> Result<Vec<Value>, String> {
+    ) -> Result<Vec<HubSpotObject>, String> {
         self.request_with_pagination(
             format!("/crm/v3/objects/{object_type}{}", query_params_to_string(properties, associations)),
             HttpMethod::Get,

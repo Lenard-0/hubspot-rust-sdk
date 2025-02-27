@@ -1,4 +1,6 @@
 use serde_json::Value;
+use crate::objects::types::HubSpotObject;
+
 use super::{client::HubSpotClient, requests::HttpMethod, utils::to_array};
 
 pub enum TurnPageMethod {
@@ -24,7 +26,7 @@ impl HubSpotClient {
         body: Option<CreateBody>,
         max_amount: Option<usize>,
         get_next_page_method: fn(&Value) -> Option<TurnPageMethod>,
-    ) -> Result<Vec<Value>, String> {
+    ) -> Result<Vec<HubSpotObject>, String> {
         let mut after = 0;
         let mut all_objects = Vec::new();
         let request_limit = match max_amount {
@@ -60,6 +62,7 @@ impl HubSpotClient {
 
             tokio::time::sleep(std::time::Duration::from_millis(200)).await; // 5 requests per second max
         }
-        return Ok(all_objects);
+
+        return all_objects.into_iter().map(|object| HubSpotObject::from_value(object)).collect()
     }
 }

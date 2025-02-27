@@ -5,13 +5,18 @@ use super::types::HubSpotObjectType;
 
 impl HubSpotClient {
     /// Creates a record and returns it's ID
-    pub async fn create(&self, record_type: HubSpotObjectType, properties: HashMap<String, Value>) -> Result<String, String> {
+    pub async fn create(
+        &self,
+        record_type: HubSpotObjectType,
+        properties: HashMap<String, Value>,
+        // associations: Vec<&str>,
+    ) -> Result<String, String> {
         let result = self.request(
             &format!("/crm/v3/objects/{record_type}"),
             &HttpMethod::Post,
             Some(json!({
                 "properties": properties
-            })),
+            }))
         ).await?;
 
         return match result["id"].as_str() {

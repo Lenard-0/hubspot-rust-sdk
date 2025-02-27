@@ -29,10 +29,10 @@ mod tests {
             vec![]
         ).await.unwrap();
 
-
-        assert_eq!(contact["properties"]["email"].as_str().unwrap(), email);
-        assert_eq!(contact["properties"]["firstname"].as_str().unwrap(), firstname);
-        assert_eq!(contact["properties"]["lastname"].as_str().unwrap(), lastname);
+        assert_eq!(contact.properties["email"].as_str().unwrap(), email);
+        assert_eq!(contact.properties["firstname"].as_str().unwrap(), firstname);
+        assert_eq!(contact.properties["lastname"].as_str().unwrap(), lastname);
+        assert_eq!(contact.associations, None);
 
         hs_client.remove(HubSpotObjectType::Contact, &id).await.unwrap();
         sleep(std::time::Duration::from_secs(1));
@@ -46,6 +46,63 @@ mod tests {
 
         assert!(contact.is_err());
     }
+
+    // #[tokio::test]
+    // async fn can_get_associations_in_get_request() {
+    //     dotenv::dotenv().ok();
+    //     let hs_client = HubSpotClient::new(env::var("HUBSPOT_API_KEY").unwrap());
+    //     let contact_id = hs_client.create(
+    //         HubSpotObjectType::Contact,
+    //         HashMap::new()
+    //     ).await.unwrap();
+
+    //     sleep(std::time::Duration::from_secs(1));
+
+    //     let contact = hs_client.get(
+    //         HubSpotObjectType::Contact,
+    //         &contact_id,
+    //         vec!["email", "firstname", "lastname"],
+    //         vec![]
+    //     ).await.unwrap();
+
+    //     let second_contact_id = hs_client.create(
+    //         HubSpotObjectType::Contact,
+    //         HashMap::new()
+    //     ).await.unwrap();
+
+    //     sleep(std::time::Duration::from_secs(1));
+
+    //     let second_contact = hs_client.get(
+    //         HubSpotObjectType::Contact,
+    //         &second_contact_id,
+    //         vec!["email", "firstname", "lastname"],
+    //         vec![]
+    //     ).await.unwrap();
+
+    //     hs_client.associate(
+    //         HubSpotObjectType::Contact,
+    //         &contact_id,
+    //         HubSpotObjectType::Contact,
+    //         &second_contact_id,
+    //         None,
+    //         false
+    //     ).await.unwrap();
+
+    //     sleep(std::time::Duration::from_secs(1));
+
+    //     let contact = hs_client.get(
+    //         HubSpotObjectType::Contact,
+    //         &contact_id,
+    //         vec!["email", "firstname", "lastname"],
+    //         vec![]
+    //     ).await.unwrap();
+
+    //     assert_eq!(contact.associations.len(), 1);
+    //     println!("{:#?}", contact.associations[0]);
+
+    //     hs_client.remove(HubSpotObjectType::Contact, &contact_id).await.unwrap();
+    //     hs_client.remove(HubSpotObjectType::Contact, &second_contact_id).await.unwrap();
+    // }
 
 
     #[tokio::test]

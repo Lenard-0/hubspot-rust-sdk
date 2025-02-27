@@ -1,7 +1,7 @@
 use serde::Serialize;
 use serde_json::{json, Value};
 use crate::universals::{client::HubSpotClient, pagination::{CreateBody, PaginationBodyParams, TurnPageMethod}, requests::HttpMethod};
-use super::types::HubSpotObjectType;
+use super::types::{HubSpotObject, HubSpotObjectType};
 
 #[derive(Debug, Serialize)]
 pub struct FilterGroup {
@@ -24,7 +24,7 @@ impl HubSpotClient {
         properties: Vec<&str>,
         associations: Vec<&str>,
         max_amount: Option<usize>
-    ) -> Result<Vec<Value>, String> {
+    ) -> Result<Vec<HubSpotObject>, String> {
         self.request_with_pagination(
             format!("/crm/v3/objects/{object_type}/search"),
             HttpMethod::Post,
