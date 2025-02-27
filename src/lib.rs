@@ -1,5 +1,6 @@
 
 pub mod objects;
+pub mod list;
 
 #[derive(Debug, Clone)]
 pub struct HubSpotClient {
