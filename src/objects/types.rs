@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{collections::HashMap, fmt::Display};
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -6,7 +6,19 @@ use serde_json::Value;
 pub struct HubSpotObject {
     pub id: String,
     pub properties: Value,
-    pub associations: Option<Vec<Value>>
+    pub associations: Option<HashMap<String, ObjectAssociations>>
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ObjectAssociations {
+    pub results: Vec<ObjectAssociation>
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+pub struct ObjectAssociation {
+    pub id: String,
+    #[serde(rename = "type")]
+    _type: String,
 }
 
 impl HubSpotObject {

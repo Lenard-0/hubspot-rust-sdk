@@ -13,14 +13,16 @@ mod tests {
         properties.insert("email".to_string(), "testemail123@gmail.com".into());
         let contact_id = hs_client.create(
             HubSpotObjectType::Contact,
-            properties
+            properties,
+            None
         ).await.unwrap();
 
         let mut properties = HashMap::new();
         properties.insert("name".to_string(), "Test Company".into());
         let company_id = hs_client.create(
             HubSpotObjectType::Company,
-            properties
+            properties,
+            None
         ).await.unwrap();
 
         hs_client.associate(
@@ -29,7 +31,6 @@ mod tests {
             HubSpotObjectType::Company,
             &company_id,
             None,
-            false
         ).await.unwrap();
 
         sleep(std::time::Duration::from_secs(1));

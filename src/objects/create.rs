@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
 use std::collections::HashMap;
-use crate::universals::{client::HubSpotClient, requests::HttpMethod};
+use crate::{associations::CreateAssociation, universals::{client::HubSpotClient, requests::HttpMethod}};
 use super::types::HubSpotObjectType;
 
 impl HubSpotClient {
@@ -9,14 +9,20 @@ impl HubSpotClient {
         &self,
         record_type: HubSpotObjectType,
         properties: HashMap<String, Value>,
-        // associations: Vec<&str>,
+        associations: Option<Vec<CreateAssociation>>
     ) -> Result<String, String> {
+        let mut payload = json!({
+            "properties": properties
+        });
+
+        if let Some(associations) = associations {
+            payload["associations"] = json!(associations);
+        }
+
         let result = self.request(
             &format!("/crm/v3/objects/{record_type}"),
             &HttpMethod::Post,
-            Some(json!({
-                "properties": properties
-            }))
+            Some(payload)
         ).await?;
 
         return match result["id"].as_str() {

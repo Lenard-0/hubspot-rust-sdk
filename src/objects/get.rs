@@ -40,31 +40,34 @@ impl HubSpotClient {
 }
 
 fn query_params_to_string(properties: Vec<&str>, associations: Vec<&str>) -> String {
-    if properties.len() == 0 && associations.len() == 0 {
+    if properties.is_empty() && associations.is_empty() {
         return "".to_string();
     }
 
     let mut query_params = String::new();
-    query_params.push_str("?");
-    push_params(&mut query_params, properties, "properties");
-    if query_params.len() > 1 {
-        query_params.push_str("&");
-    }
-    push_params(&mut query_params, associations, "associations");
+    query_params.push('?');
 
-    return query_params
+    let mut first_param = true; // Track whether this is the first parameter
+
+    if !properties.is_empty() {
+        push_params(&mut query_params, &properties, "properties");
+        first_param = false;
+    }
+
+    if !associations.is_empty() {
+        if !first_param {
+            query_params.push('&');
+        }
+        push_params(&mut query_params, &associations, "associations");
+    }
+
+    query_params
 }
 
-fn push_params(query_params: &mut String, params: Vec<&str>, params_name: &str) {
-    if params.len() == 0 {
-        return
-    }
-    query_params.push_str(&format!("{}=", params_name));
-    for param in params {
-        query_params.push_str(&format!("{},", param));
-    }
-    query_params.pop();
+fn push_params(query_params: &mut String, params: &[&str], params_name: &str) {
+    query_params.push_str(&format!("{}={}", params_name, params.join(",")));
 }
+
 
 pub fn next_url(body: &Value) -> Option<TurnPageMethod> {
     match body["paging"]["next"]["link"].as_str() {

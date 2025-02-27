@@ -1,14 +1,14 @@
 
-use serde::Deserialize;
-use serde_json::{from_value, json};
+use serde::{Deserialize, Serialize};
+use serde_json::{from_value, to_value, Value};
 use crate::{objects::types::HubSpotObjectType, universals::{client::HubSpotClient, requests::HttpMethod}};
 
 #[derive(Deserialize)]
-pub struct CourseToContactAssociateResponse {
+pub struct AssociationsResponse {
     pub results: Vec<Association>
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct Association {
     #[serde(rename = "associationTypes")]
     pub association_types: Vec<AssociationType>,
@@ -21,6 +21,20 @@ pub struct AssociationType {
     pub label: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateAssociation {
+    pub to: String,
+    pub types: Vec<CreateAssociationType>
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateAssociationType {
+    #[serde(rename = "associationCategory")]
+    pub association_category: String,
+    #[serde(rename = "associationTypeId")]
+    pub association_type_id: u64,
+}
+
 impl HubSpotClient {
     pub async fn associate(
         &self,
@@ -28,8 +42,7 @@ impl HubSpotClient {
         from_object_id: &str,
         to_object_type: HubSpotObjectType,
         to_object_id: &str,
-        association_type: Option<&str>,
-        make_primary: bool,
+        association_type: Option<CreateAssociationType>,
     ) -> Result<(), String> {
         let path_start = format!(
             "/crm/v4/objects/{}/{}",
@@ -43,13 +56,12 @@ impl HubSpotClient {
             path_end = format!("/associations/{}/{}", to_object_type.to_string_singular(), to_object_id);
         }
 
-        let payload = if make_primary || association_type.is_some() {
-            Some(json!({
-                "associationCategory": "HUBSPOT_DEFINED",
-                "associationTypeId": association_type.unwrap_or("1") // Replace with the actual type ID
-            }))
-        } else {
-            None
+        let payload: Option<Value> = match association_type {
+            Some(association_type) => Some(match to_value(association_type) {
+                Ok(value) => value,
+                Err(err) => return Err(format!("Failed to convert association type to value: {}", err))
+            }),
+            None => None
         };
 
         let path = format!("{}{}", path_start, path_end);
@@ -86,11 +98,26 @@ impl HubSpotClient {
             &HttpMethod::Get,
             None
         ).await?) {
-            Ok(value) => {
-                let response: CourseToContactAssociateResponse = serde_json::from_value(value).unwrap();
-                Ok(response.results)
+            Ok(value) => match serde_json::from_value(value) {
+                Ok(AssociationsResponse { results }) => Ok(results),
+                Err(err) => Err(err.to_string())
             },
             Err(err) => Err(err.to_string())
         }
     }
 }
+
+// pub fn get_hs_defined_association_type(
+//     from_object_type: HubSpotObjectType,
+//     to_object_type: HubSpotObjectType,
+//     is_primary: bool,
+// ) -> Option<u64> {
+//     for association in association_types {
+//         if let Some(label) = &association.label {
+//             if label == association_type {
+//                 return Some(association.label.as_ref().unwrap().parse::<u64>().unwrap());
+//             }
+//         }
+//     }
+//     return None;
+// }
