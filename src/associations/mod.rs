@@ -77,14 +77,14 @@ impl HubSpotClient {
         from_object_type: HubSpotObjectType,
         from_object_id: &str,
         to_object_type: HubSpotObjectType,
-        to_object_id: &str,
     ) -> Result<Vec<Association>, String> {
         return match from_value(self.request(
             &format!(
-                "/crm/v4/objects/{}/{}/associations/{}/{}",
-                from_object_type.to_string_singular(), from_object_id, to_object_type.to_string_singular(), to_object_id
+                "/crm/v4/objects/{}/{}/associations/{}",
+                from_object_type.to_string_singular(), from_object_id, to_object_type.to_string_singular()
             ),
-            &HttpMethod::Get, None
+            &HttpMethod::Get,
+            None
         ).await?) {
             Ok(value) => {
                 let response: CourseToContactAssociateResponse = serde_json::from_value(value).unwrap();
