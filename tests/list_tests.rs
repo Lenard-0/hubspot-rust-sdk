@@ -2,27 +2,20 @@
 #[cfg(test)]
 mod tests {
     use std::env;
-    use hubspot_rust_sdk::HubSpotClient;
-
+    use hubspot_rust_sdk::{objects::types::HubSpotObjectType, HubSpotClient};
 
     #[tokio::test]
-    async fn can_get_contacts_from_list() {
+    async fn can_get_lists_record_is_member_of() {
         dotenv::dotenv().ok();
         let hs_client = HubSpotClient::new(env::var("HUBSPOT_API_KEY").unwrap());
-        let contacts = hs_client.get_contacts_from_list("1434").await.unwrap();
-        assert!(contacts.len() > 0);
-        // can find contact with email
-        let contact = contacts.iter().find(|contact| {
-            contact["properties"]["email"]["value"].as_str().unwrap() == env::var("CONTACT_EMAIL").unwrap()
+        let memberships = hs_client.get_lists_record_is_member_of(
+            HubSpotObjectType::Contact,
+            "14533801"
+        ).await.unwrap();
+        assert!(memberships.len() > 0);
+        let membership = memberships.iter().find(|membership| {
+            membership["listId"].as_str().unwrap() == "2022"
         });
-        assert!(contact.is_some());
-    }
-
-    #[tokio::test]
-    async fn list_that_does_not_exist_returns_error() {
-        dotenv::dotenv().ok();
-        let hs_client = HubSpotClient::new(env::var("HUBSPOT_API_KEY").unwrap());
-        let contacts = hs_client.get_contacts_from_list("9999999999999").await;
-        assert!(contacts.is_err());
+        assert!(membership.is_some());
     }
 }
