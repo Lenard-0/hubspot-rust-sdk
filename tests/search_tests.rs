@@ -5,11 +5,12 @@ mod tests {
     use hubspot_rust_sdk::{objects::{search::{Filter, FilterGroup}, types::HubSpotObjectType}, universals::client::HubSpotClient};
 
     #[tokio::test]
-    async fn can_search_for_company_by_a_property() {
+    async fn can_search_for_contact_by_a_property() {
         dotenv::dotenv().ok();
         let hs_client = HubSpotClient::new(env::var("HUBSPOT_API_KEY").unwrap());
-        let companies = hs_client.search(
-            HubSpotObjectType::Company,
+        let limit = 500;
+        let contacts = hs_client.search(
+            HubSpotObjectType::Contact,
             vec![FilterGroup {
                 filters: vec![
                     Filter {
@@ -21,10 +22,11 @@ mod tests {
             }],
             vec!["lifecyclestage"],
             vec![],
-            None
+            Some(limit)
         ).await.unwrap();
 
-        assert!(companies.iter().all(|company| company["properties"]["lifecyclestage"].as_str().unwrap() == "customer"));
-        assert_eq!(companies.len() > 1, true);
+        println!("{:?}", contacts.len());
+        assert!(contacts.iter().all(|contact| contact["properties"]["lifecyclestage"].as_str().unwrap() == "customer"));
+        assert_eq!(contacts.len(), limit);
     }
 }

@@ -8,7 +8,7 @@ impl HubSpotClient {
     pub async fn create(&self, record_type: HubSpotObjectType, properties: HashMap<String, Value>) -> Result<String, String> {
         let result = self.request(
             &format!("/crm/v3/objects/{record_type}"),
-            HttpMethod::Post,
+            &HttpMethod::Post,
             Some(json!({
                 "properties": properties
             })),

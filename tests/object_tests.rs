@@ -49,17 +49,17 @@ mod tests {
 
 
     #[tokio::test]
-    async fn can_get_all_companies() {
+    async fn can_get_many_contacts() {
         dotenv::dotenv().ok();
         let hs_client = HubSpotClient::new(env::var("HUBSPOT_API_KEY").unwrap());
-        let limit = 200;
-        let companies = hs_client.get_all(
-            HubSpotObjectType::Company,
+        let limit = 500;
+        let contacts = hs_client.get_many(
+            HubSpotObjectType::Contact,
             vec![],
             vec![],
             Some(limit)
         ).await.unwrap();
 
-        assert_eq!(companies.len(), limit);
+        assert_eq!(contacts.len(), limit);
     }
 }

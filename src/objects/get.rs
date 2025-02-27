@@ -1,5 +1,5 @@
 use serde_json::Value;
-use crate::universals::{client::HubSpotClient, requests::HttpMethod, utils::to_array};
+use crate::universals::{client::HubSpotClient, pagination::TurnPageMethod, requests::HttpMethod};
 use super::types::HubSpotObjectType;
 
 impl HubSpotClient {
@@ -17,43 +17,25 @@ impl HubSpotClient {
                 "/crm/v3/objects/{object_type}/{object_id}{}",
                 query_params_to_string(properties, associations)
             ),
-            HttpMethod::Get,
+            &HttpMethod::Get,
             None
         ).await
     }
 
-    pub async fn get_all(
+    pub async fn get_many(
         &self,
         object_type: HubSpotObjectType,
         properties: Vec<&str>,
         associations: Vec<&str>,
         max_amount: Option<usize>,
     ) -> Result<Vec<Value>, String> {
-        let mut all_objects = Vec::new();
-        let mut current_url = format!("/crm/v3/objects/{object_type}{}", query_params_to_string(properties, associations));
-        loop {
-            let result = self.request(
-                &current_url,
-                HttpMethod::Get,
-                None
-            ).await?;
-
-            all_objects.extend(to_array(&result["results"])?);
-
-            match max_amount {
-                Some(limit) if all_objects.len() >= limit => break,
-                _ => (),
-            };
-
-            match next_url(&result) {
-                Some(url) => current_url = url,
-                None => break,
-            };
-
-            tokio::time::sleep(std::time::Duration::from_millis(200)).await; // 5 requests per second max
-        }
-
-        return Ok(all_objects)
+        self.request_with_pagination(
+            format!("/crm/v3/objects/{object_type}{}", query_params_to_string(properties, associations)),
+            HttpMethod::Get,
+            None,
+            max_amount,
+            next_url
+        ).await
     }
 }
 
@@ -84,9 +66,9 @@ fn push_params(query_params: &mut String, params: Vec<&str>, params_name: &str) 
     query_params.pop();
 }
 
-pub fn next_url(body: &Value) -> Option<String> {
+pub fn next_url(body: &Value) -> Option<TurnPageMethod> {
     match body["paging"]["next"]["link"].as_str() {
-        Some(link) => Some(link.to_string()),
+        Some(link) => Some(TurnPageMethod::NextUrl(link.to_string())),
         None => None,
     }
 }

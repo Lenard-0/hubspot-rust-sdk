@@ -5,7 +5,7 @@ impl HubSpotClient {
     pub async fn remove(&self, object_type: HubSpotObjectType, object_id: &str) -> Result<(), String> {
         self.request(
             &format!("/crm/v3/objects/{object_type}/{object_id}"),
-            HttpMethod::Delete,
+            &HttpMethod::Delete,
             None,
         ).await?;
         Ok(())

@@ -9,7 +9,7 @@ impl HubSpotClient {
     ) -> Result<Vec<Value>, String> {
         let result = self.request(
             &format!("/crm/v3/lists/records/{record_type}/{id}/memberships"),
-            HttpMethod::Get,
+            &HttpMethod::Get,
             None,
         ).await?;
 

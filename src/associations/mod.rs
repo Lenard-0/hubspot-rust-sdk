@@ -53,7 +53,7 @@ impl HubSpotClient {
         };
 
         let path = format!("{}{}", path_start, path_end);
-        self.request(&path, HttpMethod::Put, payload).await?;
+        self.request(&path, &HttpMethod::Put, payload).await?;
         return Ok(())
     }
 
@@ -68,7 +68,7 @@ impl HubSpotClient {
             "/crm/v4/objects/{}/{}/associations/{}/{}",
             from_object_type.to_string_singular(), from_object_id, to_object_type.to_string_singular(), to_object_id
         );
-        self.request(&path, HttpMethod::Delete, None).await?;
+        self.request(&path, &HttpMethod::Delete, None).await?;
         return Ok(())
     }
 
@@ -84,7 +84,7 @@ impl HubSpotClient {
                 "/crm/v4/objects/{}/{}/associations/{}/{}",
                 from_object_type.to_string_singular(), from_object_id, to_object_type.to_string_singular(), to_object_id
             ),
-            HttpMethod::Get, None
+            &HttpMethod::Get, None
         ).await?) {
             Ok(value) => {
                 let response: CourseToContactAssociateResponse = serde_json::from_value(value).unwrap();

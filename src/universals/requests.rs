@@ -16,7 +16,7 @@ impl HubSpotClient {
     pub async fn request(
         &self,
         path: &str,
-        method: HttpMethod,
+        method: &HttpMethod,
         payload: Option<Value>,
     ) -> Result<Value, String> {
         let path = path.trim_start_matches(BASE_URL); // sometimes we can receive a "next url" rather than a path if we are using HubSpot's pagination
