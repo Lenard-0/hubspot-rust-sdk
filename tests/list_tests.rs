@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod tests {
     use std::env;
-    use hubspot_rust_sdk::{objects::types::HubSpotObjectType, HubSpotClient};
+    use hubspot_rust_sdk::{objects::types::HubSpotObjectType, universals::client::HubSpotClient};
 
     #[tokio::test]
     async fn can_get_lists_record_is_member_of() {

@@ -1,8 +1,7 @@
 use serde::Serialize;
 use serde_json::{json, Value};
-use crate::HubSpotClient;
+use crate::universals::{client::HubSpotClient, requests::HttpMethod, utils::to_array};
 use super::types::HubSpotObjectType;
-
 
 #[derive(Debug, Serialize)]
 pub struct FilterGroup {
@@ -17,7 +16,6 @@ pub struct Filter {
     pub value: String,
 }
 
-
 impl HubSpotClient {
     pub async fn search(
         &self,
@@ -30,53 +28,35 @@ impl HubSpotClient {
         let mut after = 0;
         let mut current_url;
         let mut all_objects = Vec::new();
-        let client = reqwest::Client::new();
         let limit = match max_amount {
             Some(limit) if limit < 200 => limit,
             _ => 200
         };
         loop {
-            current_url = format!("https://api.hubspot.com/crm/v3/objects/{}/search", object_type.to_string());
-            let res = match client
-                .post(current_url)
-                .header("Authorization", format!("Bearer {}", self.api_key))
-                .json(&json!({
+            current_url = format!("https://api.hubspot.com/crm/v3/objects/{object_type}/search");
+            let result = self.request(
+                &current_url,
+                HttpMethod::Post,
+                Some(json!({
                     "filterGroups": filter,
                     "properties": properties,
                     "associations": associations,
                     "limit": limit,
                     "after": after
                 }))
-                .send()
-                .await {
-                    Ok(res) => res,
-                    Err(e) => return Err(format!("Failed to search: {}", e)),
-                };
-            if res.status().is_success() {
-                let body: Value = match res.json().await {
-                    Ok(body) => body,
-                    Err(e) => return Err(format!("Failed to parse response body: {}", e)),
-                };
-                match body["results"].as_array() {
-                    Some(results) => all_objects.extend(results.to_vec()),
-                    None => return Err(format!("Failed to parse results of body getting all: {:#?}", body)),
-                };
+            ).await?;
 
-                match max_amount {
-                    Some(limit) if all_objects.len() >= limit => break,
-                    _ => (),
-                };
+            all_objects.extend(to_array(&result["results"])?);
 
-                match get_after_pagination(&body) {
-                    Some(new_after) => after = new_after,
-                    None => break,
-                };
-            } else {
-                return Err(format!("Failed to create object. Status: {}. Body: {}", res.status(), match res.text().await {
-                    Ok(body) => body,
-                    Err(_) => "Failed to get response body".to_string(),
-                }))
-            }
+            match max_amount {
+                Some(limit) if all_objects.len() >= limit => break,
+                _ => (),
+            };
+
+            match get_after_pagination(&result) {
+                Some(new_after) => after = new_after,
+                None => break,
+            };
 
             tokio::time::sleep(std::time::Duration::from_millis(200)).await; // 5 requests per second max
         }

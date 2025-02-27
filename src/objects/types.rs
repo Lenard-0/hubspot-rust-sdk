@@ -1,4 +1,6 @@
+use std::fmt::Display;
 
+#[derive(Debug)]
 pub enum HubSpotObjectType {
     Contact,
     Company,
@@ -9,13 +11,13 @@ pub enum HubSpotObjectType {
     }
 }
 
-impl ToString for HubSpotObjectType {
-    fn to_string(&self) -> String {
+impl Display for HubSpotObjectType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            HubSpotObjectType::Contact => "contacts".to_string(),
-            HubSpotObjectType::Company => "companies".to_string(),
-            HubSpotObjectType::Deal => "deals".to_string(),
-            HubSpotObjectType::CustomObject { plural, .. } => plural.to_string(),
+            HubSpotObjectType::Contact => write!(f, "contacts"),
+            HubSpotObjectType::Company => write!(f, "companies"),
+            HubSpotObjectType::Deal => write!(f, "deals"),
+            HubSpotObjectType::CustomObject { plural, .. } => write!(f, "{}", plural),
         }
     }
 }

@@ -1,17 +1,8 @@
-
-
-use reqwest;
 use serde_json::Value;
-
-
-use crate::HubSpotClient;
-
+use crate::universals::{client::HubSpotClient, requests::HttpMethod, utils::to_array};
 use super::types::HubSpotObjectType;
 
-
-
 impl HubSpotClient {
-
     /// Creates a record and returns it's ID
     /// The "body" will be converted to query params
     pub async fn get(
@@ -21,32 +12,14 @@ impl HubSpotClient {
         properties: Vec<&str>,
         associations: Vec<&str>,
     ) -> Result<Value, String> {
-        let url = format!("https://api.hubspot.com/crm/v3/objects/{}/{}", object_type.to_string(), object_id);
-        let query_params = query_params_to_string(properties, associations);
-        let url = format!("{}{}", url, query_params);
-        let client = reqwest::Client::new();
-        let res = match client
-            .get(&url)
-            .header("Authorization", format!("Bearer {}", self.api_key))
-            .send()
-            .await {
-                Ok(res) => res,
-                Err(e) => return Err(format!("Failed to create object: {}", e)),
-            };
-
-        return match res.status().is_success() {
-            true => {
-                let body = res.text().await.unwrap();
-                let body_json: Value = serde_json::from_str(&body).unwrap();
-                Ok(body_json)
-            },
-            false => {
-                Err(format!("Failed to create object. Status: {}. Body: {}", res.status(), match res.text().await {
-                    Ok(body) => body,
-                    Err(_) => "Failed to get response body".to_string(),
-                }))
-            }
-        }
+        self.request(
+            &format!(
+                "/crm/v3/objects/{object_type}/{object_id}{}",
+                query_params_to_string(properties, associations)
+            ),
+            HttpMethod::Get,
+            None
+        ).await
     }
 
     pub async fn get_all(
@@ -57,49 +30,30 @@ impl HubSpotClient {
         max_amount: Option<usize>,
     ) -> Result<Vec<Value>, String> {
         let mut all_objects = Vec::new();
-        let client = reqwest::Client::new();
-        let mut current_url = format!("https://api.hubspot.com/crm/v3/objects/{}", object_type.to_string());
-        let query_params = query_params_to_string(properties, associations);
-        current_url = format!("{}{}", current_url, query_params);
+        let mut current_url = format!("/crm/v3/objects/{object_type}{}", query_params_to_string(properties, associations));
         loop {
-            let res = match client
-                .get(current_url)
-                .header("Authorization", format!("Bearer {}", self.api_key))
-                .send()
-                .await {
-                    Ok(res) => res,
-                    Err(e) => return Err(format!("Failed to create object: {}", e)),
-                };
-            if res.status().is_success() {
-                let body: Value = match res.json().await {
-                    Ok(body) => body,
-                    Err(e) => return Err(format!("Failed to parse response body: {}", e)),
-                };
-                match body["results"].as_array() {
-                    Some(results) => all_objects.extend(results.to_vec()),
-                    None => return Err(format!("Failed to parse results of body getting all: {:#?}", body)),
-                };
+            let result = self.request(
+                &current_url,
+                HttpMethod::Get,
+                None
+            ).await?;
 
-                match max_amount {
-                    Some(limit) if all_objects.len() >= limit => break,
-                    _ => (),
-                };
+            all_objects.extend(to_array(&result["results"])?);
 
-                match next_url(&body) {
-                    Some(url) => current_url = url,
-                    None => break,
-                }
+            match max_amount {
+                Some(limit) if all_objects.len() >= limit => break,
+                _ => (),
+            };
 
-            } else {
-                return Err(format!("Failed to create object. Status: {}. Body: {}", res.status(), match res.text().await {
-                    Ok(body) => body,
-                    Err(_) => "Failed to get response body".to_string(),
-                }))
-            }
+            match next_url(&result) {
+                Some(url) => current_url = url,
+                None => break,
+            };
 
             tokio::time::sleep(std::time::Duration::from_millis(200)).await; // 5 requests per second max
         }
-        return Ok(all_objects);
+
+        return Ok(all_objects)
     }
 }
 
@@ -130,12 +84,6 @@ fn push_params(query_params: &mut String, params: Vec<&str>, params_name: &str) 
     query_params.pop();
 }
 
-// Object {
-    //     "next": Object {
-    //         "after": String("8958534985"),
-    //         "link": String("https://api.hubspot.com/crm/v3/objects/companies/?limit=100&after=8958534985"),
-    //     },
-    // }
 pub fn next_url(body: &Value) -> Option<String> {
     match body["paging"]["next"]["link"].as_str() {
         Some(link) => Some(link.to_string()),

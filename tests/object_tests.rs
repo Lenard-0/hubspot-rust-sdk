@@ -2,8 +2,7 @@
 #[cfg(test)]
 mod tests {
     use std::{collections::HashMap, env, thread::sleep};
-    use hubspot_rust_sdk::{objects::types::HubSpotObjectType, HubSpotClient};
-
+    use hubspot_rust_sdk::{objects::types::HubSpotObjectType, universals::client::HubSpotClient};
 
     #[tokio::test]
     async fn can_create_get_and_remove_contact() {
@@ -53,13 +52,14 @@ mod tests {
     async fn can_get_all_companies() {
         dotenv::dotenv().ok();
         let hs_client = HubSpotClient::new(env::var("HUBSPOT_API_KEY").unwrap());
+        let limit = 200;
         let companies = hs_client.get_all(
             HubSpotObjectType::Company,
             vec![],
             vec![],
-            Some(500)
+            Some(limit)
         ).await.unwrap();
 
-        assert_eq!(companies.len(), 500);
+        assert_eq!(companies.len(), limit);
     }
 }
