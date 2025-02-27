@@ -14,7 +14,7 @@ mod tests {
         ).await.unwrap();
         assert!(memberships.len() > 0);
         let membership = memberships.iter().find(|membership| {
-            membership["listId"].as_str().unwrap() == "2022"
+            membership.list_id == "2022"
         });
         assert!(membership.is_some());
     }
