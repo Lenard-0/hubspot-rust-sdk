@@ -4,7 +4,8 @@ version = "0.2.0"
 edition = "2021"
 
 authors = ["Lachlan Hislop lachie.hislop@gmail.com"]
-description = "A HubSpot SKD for Rust."
+description = "A HubSpot SKD for Rust. This SDK is designed to be a simple and easy to use interface for the HubSpot API."
+keywords=["hubspot", "sdk", "api", "rust"]
 license = "MIT"
 repository = "https://github.com/Lenard-0/hubspot-rust-sdk"
 documentation = "https://docs.rs/hubspot-rust-sdk"
