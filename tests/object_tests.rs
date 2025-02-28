@@ -1,8 +1,8 @@
 
 #[cfg(test)]
 mod tests {
-    use std::{collections::HashMap, env, thread::sleep};
-    use hubspot_rust_sdk::{associations::{Association, CreateAssociation, CreateAssociationType}, objects::types::HubSpotObjectType, universals::client::HubSpotClient};
+    use std::{collections::HashMap, env, thread::sleep, vec};
+    use hubspot_rust_sdk::{associations::{CreateAssociation, CreateAssociationType}, objects::types::{HubSpotObject, HubSpotObjectType}, universals::client::HubSpotClient};
 
     #[tokio::test]
     async fn can_create_get_and_remove_contact() {
@@ -114,5 +114,36 @@ mod tests {
         ).await.unwrap();
 
         assert_eq!(contacts.len(), limit);
+    }
+
+    #[tokio::test]
+    async fn can_get_batch_of_companies() {
+        dotenv::dotenv().ok();
+        let hs_client = HubSpotClient::new(env::var("HUBSPOT_API_KEY").unwrap());
+        let mut company_ids = vec![];
+        let domains = vec!["testcompany.com", "testcompany2.com", "testcompany3.com", "testcompany4.com", "testcompany5.com"];
+        for domain in &domains {
+            let mut properties = HashMap::new();
+            properties.insert("domain".to_string(), (*domain).into());
+            properties.insert("name".to_string(), (*domain).into());
+            let id = hs_client.create(
+                HubSpotObjectType::Company,
+                properties,
+                None
+            ).await.unwrap();
+            company_ids.push(id);
+        }
+        let companies: Vec<HubSpotObject> = hs_client.get_batch(
+            HubSpotObjectType::Company,
+            company_ids.iter().map(|id| id.as_str()).collect(),
+            vec!["domain", "name"],
+        ).await.unwrap();
+
+        assert_eq!(companies.len(), domains.len());
+        assert!(companies.iter().all(|company| domains.contains(&company.properties["domain"].as_str().unwrap())));
+
+        for id in company_ids {
+            hs_client.remove(HubSpotObjectType::Company, &id).await.unwrap();
+        }
     }
 }

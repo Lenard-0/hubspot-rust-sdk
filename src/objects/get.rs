@@ -1,6 +1,12 @@
-use serde_json::Value;
-use crate::universals::{client::HubSpotClient, pagination::TurnPageMethod, requests::HttpMethod};
+use serde::Serialize;
+use serde_json::{json, Value};
+use crate::universals::{client::HubSpotClient, pagination::TurnPageMethod, requests::HttpMethod, utils::to_array};
 use super::types::{HubSpotObject, HubSpotObjectType};
+
+#[derive(Debug, Serialize)]
+pub struct GetBatchInput {
+    pub id: String
+}
 
 impl HubSpotClient {
     /// Creates a record and returns it's ID
@@ -20,6 +26,32 @@ impl HubSpotClient {
             &HttpMethod::Get,
             None
         ).await? )
+    }
+
+    pub async fn get_batch(
+        &self,
+        object_type: HubSpotObjectType,
+        ids: Vec<&str>,
+        properties: Vec<&str>
+    ) -> Result<Vec<HubSpotObject>, String> {
+        let inputs = ids
+            .iter()
+            .map(|id| GetBatchInput { id: id.to_string() })
+            .collect::<Vec<GetBatchInput>>();
+
+        let objects = self.request(
+            &format!("/crm/v3/objects/{object_type}/batch/read"),
+            &HttpMethod::Post,
+            Some(json!({
+                "properties": properties,
+                "inputs": inputs
+            }))
+        ).await?;
+
+        return to_array(&objects["results"])?
+            .into_iter()
+            .map(|v| HubSpotObject::from_value(v))
+            .collect::<Result<Vec<HubSpotObject>, String>>()
     }
 
     pub async fn get_many(

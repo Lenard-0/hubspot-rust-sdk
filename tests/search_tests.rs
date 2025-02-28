@@ -21,7 +21,6 @@ mod tests {
                 ]
             }],
             vec!["lifecyclestage"],
-            vec![],
             Some(limit)
         ).await.unwrap();
 

@@ -22,7 +22,6 @@ impl HubSpotClient {
         object_type: HubSpotObjectType,
         filter: Vec<FilterGroup>,
         properties: Vec<&str>,
-        associations: Vec<&str>,
         max_amount: Option<usize>
     ) -> Result<Vec<HubSpotObject>, String> {
         self.request_with_pagination(
@@ -32,7 +31,6 @@ impl HubSpotClient {
                 static_body: json!({
                     "filterGroups": filter,
                     "properties": properties,
-                    "associations": associations
                 }),
                 create_body
             }),
