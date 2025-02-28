@@ -1,7 +1,7 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value, to_value, Value};
-use crate::{objects::types::HubSpotObjectType, universals::{client::HubSpotClient, requests::HttpMethod}};
+use crate::{objects::types::HubSpotObjectType, universals::{client::HubSpotClient, requests::HttpMethod, utils::to_array}};
 
 #[derive(Deserialize)]
 pub struct AssociationsResponse {
@@ -33,6 +33,14 @@ pub struct CreateAssociationType {
     pub association_category: String,
     #[serde(rename = "associationTypeId")]
     pub association_type_id: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AssociationLabel {
+    pub label: Option<String>,
+    pub category: String,
+    #[serde(rename = "typeId")]
+    pub type_id: u64,
 }
 
 impl HubSpotClient {
@@ -105,7 +113,29 @@ impl HubSpotClient {
             Err(err) => Err(err.to_string())
         }
     }
+
+    pub async fn retrieve_association_labels(
+        &self,
+        from_object_type: HubSpotObjectType,
+        to_object_type: HubSpotObjectType
+    ) -> Result<Vec<AssociationLabel>, String> {
+        let result = self.request(
+            &format!("/crm/v4/associations/{from_object_type}/{to_object_type}/labels"),
+            &HttpMethod::Get,
+            None
+        ).await?;
+
+        let json_array = to_array(&result["results"])?;
+        return json_array
+            .into_iter()
+            .map(|v| match serde_json::from_value(v) {
+                Ok(label) => Ok(label),
+                Err(err) => Err(err.to_string())
+            })
+            .collect::<Result<Vec<AssociationLabel>, String>>()
+    }
 }
+
 
 // pub fn get_hs_defined_association_type(
 //     from_object_type: HubSpotObjectType,

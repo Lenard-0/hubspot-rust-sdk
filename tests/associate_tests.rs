@@ -68,6 +68,20 @@ mod tests {
         hs_client.remove(HubSpotObjectType::Company, &company_id).await.unwrap();
     }
 
+    #[tokio::test]
+    async fn can_retrieve_association_labels() {
+        dotenv::dotenv().ok();
+        let hs_client = HubSpotClient::new(env::var("HUBSPOT_API_KEY").unwrap());
+
+        let labels = hs_client.retrieve_association_labels(
+            HubSpotObjectType::Contact,
+            HubSpotObjectType::CustomObject { singular: "course".to_string(), plural: "course".to_string() }
+        ).await.unwrap();
+
+        println!("{:#?}", labels);
+        assert!(labels.len() > 1);
+    }
+
     //  TODO: Needed tests:
     // - can associate two records with primary flag
     // - can associate two records with a specific association type/label
