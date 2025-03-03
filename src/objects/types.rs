@@ -1,20 +1,20 @@
 use std::{collections::HashMap, fmt::Display};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HubSpotObject {
     pub id: String,
     pub properties: Value,
     pub associations: Option<HashMap<String, ObjectAssociations>>
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ObjectAssociations {
     pub results: Vec<ObjectAssociation>
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ObjectAssociation {
     pub id: String,
     #[serde(rename = "type")]
