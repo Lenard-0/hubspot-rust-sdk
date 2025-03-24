@@ -30,7 +30,7 @@ impl HubSpotObject {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum HubSpotObjectType {
     Contact,
     Company,
