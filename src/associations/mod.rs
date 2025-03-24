@@ -50,7 +50,7 @@ impl HubSpotClient {
         from_object_id: &str,
         to_object_type: HubSpotObjectType,
         to_object_id: &str,
-        association_type: Option<CreateAssociationType>,
+        association_type: Option<Vec<CreateAssociationType>>,
     ) -> Result<(), String> {
         let path_start = format!(
             "/crm/v4/objects/{}/{}",
